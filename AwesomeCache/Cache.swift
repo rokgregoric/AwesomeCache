@@ -1,4 +1,5 @@
 import Foundation
+import NSKeyedUnarchiverWrapper
 
 /// Represents the expiry of a cached object
 public enum CacheExpiry {
@@ -15,8 +16,8 @@ public enum CacheExpiry {
 /// The easiest way to implement a subclass is to override `objectForKey` and `setObject:forKey:expires:`,
 /// e.g. to modify values prior to reading/writing to the cache.
 open class Cache<T: NSCoding> {
-    open let name: String
-    open let cacheDirectory: URL
+    public let name: String
+    public let cacheDirectory: URL
 
     internal let cache = NSCache<NSString, CacheObject>() // marked internal for testing
     fileprivate let fileManager = FileManager()
