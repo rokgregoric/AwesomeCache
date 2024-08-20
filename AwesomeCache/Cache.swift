@@ -1,4 +1,5 @@
 import Foundation
+import NSKeyedUnarchiverWrapper
 
 /// Represents the expiry of a cached object
 public enum CacheExpiry {
@@ -15,8 +16,8 @@ public enum CacheExpiry {
 /// The easiest way to implement a subclass is to override `objectForKey` and `setObject:forKey:expires:`,
 /// e.g. to modify values prior to reading/writing to the cache.
 open class Cache<T: NSCoding> {
-    open let name: String
-    open let cacheDirectory: URL
+    public let name: String
+    public let cacheDirectory: URL
 
     internal let cache = NSCache<NSString, CacheObject>() // marked internal for testing
     fileprivate let fileManager = FileManager()
@@ -136,9 +137,9 @@ open class Cache<T: NSCoding> {
 
         queue.sync {
             let keys = self.allKeys()
-            let all = keys.map(self.read).flatMap { $0 }
+            let all = keys.map(self.read).compactMap { $0 }
             let filtered = includeExpired ? all : all.filter { !$0.isExpired() }
-            objects = filtered.map { $0.value as? T }.flatMap { $0 }
+            objects = filtered.map { $0.value as? T }.compactMap { $0 }
         }
 
         return objects
@@ -260,7 +261,7 @@ open class Cache<T: NSCoding> {
 
     fileprivate func allKeys() -> [String] {
         let urls = try? self.fileManager.contentsOfDirectory(at: self.cacheDirectory, includingPropertiesForKeys: nil, options: [])
-        return urls?.flatMap { $0.deletingPathExtension().lastPathComponent } ?? []
+        return urls?.compactMap { $0.deletingPathExtension().lastPathComponent } ?? []
     }
 
     fileprivate func urlForKey(_ key: String) -> URL {
